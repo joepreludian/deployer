@@ -1,5 +1,5 @@
 # -*- encoding: utf8 -*-
-import os
+import os, sys
 from subprocess import call, PIPE
 import argparse
 from colorama import Fore
@@ -13,18 +13,24 @@ def check_app(name):
 
 class StatusAction(argparse.Action):
 
-    def check_app_result(self, appname, message):
-        status = check_app(appname)
+    def do_checking(self, apps_list):
 
-        return '[ %s%s%s ] %s' % (Fore.GREEN if status else Fore.RED,
-                                 'OK' if status else 'FAIL',
-                                 Fore.RESET,
-                                 message)
+        for app_tuple in apps_list:
+            status = check_app(app_tuple[0])
+
+            print '[ %s%s%s ] %s' % (Fore.GREEN if status else Fore.RED,
+                                     'OK' if status else 'FAIL',
+                                     Fore.RESET,
+                                     app_tuple[1])
 
     def __call__(self, parser, namespace, values, option_string=None):
 
-        print self.check_app_result('node',
-                                    'Checking presence of NodeJS')
-        print self.check_app_result('ls',
-                                    'Checking presence of LS')
+        print "Checking services"
 
+        self.do_checking([
+            ('node', 'NodeJS'),
+            ('gunicorn','Gunicorn'),
+            ('mysqld','Mysql Server')
+        ])
+
+        sys.exit(0)

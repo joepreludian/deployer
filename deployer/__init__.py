@@ -4,16 +4,26 @@ import colorama
 import Admin
 
 
+def header():
+    return '''%s%sPreludian Deployer%s
+%sBy Jonhnatha Trigueiro
+''' % \
+          (colorama.Style.BRIGHT,
+           colorama.Fore.GREEN,
+           colorama.Fore.RESET,
+           colorama.Style.DIM
+          )
+
 def main():
     colorama.init()
 
+    print header()
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--status',
                         help='List system requirements if them exists',
                         nargs='?',
                         choices=['all', 'services', 'sites'],
-                        default='all',
                         action=Admin.StatusAction)
 
     parser.add_argument('--setup',
@@ -32,5 +42,4 @@ def main():
 
     parser.parse_args()
 
-    #print colorama.Fore.RED + 'Preludian Deployer' + colorama.Fore.RESET
-    #parser.print_help()
+    parser.print_help()
