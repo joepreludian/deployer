@@ -1,7 +1,8 @@
 # -*- encoding: utf8 -*-
 import argparse, sys
 import colorama
-import Admin
+from Status import StatusAction
+from Ssh import SshAction
 
 
 def header():
@@ -24,7 +25,7 @@ def main():
                         help='List system requirements if them exists',
                         nargs='?',
                         choices=['all', 'services', 'sites'],
-                        action=Admin.StatusAction)
+                        action=StatusAction)
 
     parser.add_argument('--setup',
                         help='Setup environment',
@@ -33,7 +34,10 @@ def main():
     parser.add_argument('--ssh-keygen',
                         help='Get public keygen',
                         nargs='?',
-                        type=str)
+                        type=str,
+                        choices=['set', 'get'],
+                        default='get',
+                        action=SshAction)
 
     parser.add_argument('install',
                         nargs='?',
