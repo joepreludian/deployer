@@ -16,8 +16,11 @@ class SshAction(argparse.Action):
 
     def __call__(self, parser, namespace, action, option_string=None):
 
-        action = getattr(self, action)
-        action()
+        try:
+            action = getattr(self, action)
+            action()
+        except TypeError:
+            print 'Action not found'
 
         sys.exit(0)
 
