@@ -1,5 +1,5 @@
 # -*- encoding: utf8 -*-
-import sys
+import sys, os
 from subprocess import call, PIPE
 import argparse
 from colorama import Fore
@@ -22,7 +22,11 @@ class SshAction(argparse.Action):
         sys.exit(0)
 
     def set(self):
-        print 'Make new keys'
+        call(['ssh-keygen', '-t', 'rsa'])
 
     def get(self):
-        print 'get existing keys'
+        id_rsa_pub_file = '%s/.ssh/id_rsa.pub' % os.environ['HOME']
+        success = call(['cat', id_rsa_pub_file], stderr=PIPE)
+
+        if success != 0:
+            print "It seems you don't have a SSH Key. Try to create one!"
