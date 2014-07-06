@@ -1,15 +1,7 @@
 # -*- encoding: utf8 -*-
 import sys
-from subprocess import call, PIPE
 import argparse
 from colorama import Fore
-
-
-def check_app(name):
-
-    return True if call(['which', name],
-                        stdout=PIPE,
-                        stderr=PIPE) == 0 else False
 
 
 class StatusAction(argparse.Action):

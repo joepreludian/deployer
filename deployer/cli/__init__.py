@@ -5,8 +5,8 @@ import colorama
 from deployer.cli import Site, Server
 
 
-def header():
-    return '''%s%sPreludian Deployer%s
+def print_app_header():
+    print '''%s%sPreludian Deployer%s
 %sBy Jonhnatha Trigueiro
 ''' % \
           (colorama.Style.BRIGHT,
@@ -15,7 +15,9 @@ def header():
            colorama.Style.DIM
           )
 
+
 def main():
+
     # create the top-level parser
     parser = argparse.ArgumentParser(description='Useful tool to manage webapps projects on VPS')
     subparsers = parser.add_subparsers(help='sub-commands help')
@@ -23,10 +25,9 @@ def main():
     Server.make_options(subparsers)
     Site.make_options(subparsers)
 
-    # parse some argument lists
+    print_app_header()
     args = parser.parse_args()
 
-    print args
 '''
 def main():
     colorama.init()

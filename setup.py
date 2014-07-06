@@ -13,7 +13,7 @@ setup(
     description='A handful tool to manage multiple django apps',
     entry_points={
         'console_scripts': [
-            'deployer = deployer:main',
+            'deployer = deployer.cli:main',
         ]
     }
 )
