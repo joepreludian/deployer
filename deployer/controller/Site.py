@@ -58,5 +58,33 @@ def git_clone(project_name, git):
 
     return True
 
+def create_virtualenv(project_name):
+    project_virtualenv = '%s/env' % get_project_dir(project_name=project_name)
+    return call(['virtualenv', project_virtualenv])
+
+
+def get_virtualenv_bin(project_name, command):
+    project_virtualenv = '%s/env' % get_project_dir(project_name=project_name)
+    return '%s/bin/%s' % (project_virtualenv, command)
+
+
+def install_pip_dependencies(project_name):
+    virtualenv_file = '%s/requirements.pip' % get_project_dir(project_name)
+    return call([get_virtualenv_bin(project_name, 'pip'), 'install', '-r', virtualenv_file])
+
+def django_database_prepare(project_name):
+
+    manage_py = '%s/manage.py' % get_project_dir(project_name)
+
+    call([get_virtualenv_bin(project_name, 'python'), manage_py, 'syncdb', '--noinput'])
+    call([get_virtualenv_bin(project_name, 'python'), manage_py, 'migrate'])
+
+
+# API Actions itself
 def install(project_name, git):
-    return git_clone(project_name, git)
+    git_clone(project_name, git)
+    create_virtualenv(project_name)
+    install_pip_dependencies(project_name)
+    # Before ajdngo_database_prepare, run database creation in mysql
+    django_database_prepare(project_name)
+
