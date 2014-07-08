@@ -16,6 +16,7 @@ def make_options(subparsers):
                                        'environment',
                                        'all'],
                                action=InfoAction)
+
     server_parser.add_argument('--ssh',
                                type=str,
                                choices=['get',
@@ -75,7 +76,7 @@ class InfoAction(argparse.Action):
                                                             'bower',
                                                             'gunicorn',
                                                             'fab',
-                                                            'supervisorsd'])
+                                                            'supervisord'])
 
         print services_print
 
