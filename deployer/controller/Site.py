@@ -4,87 +4,84 @@ from deployer.Utils import CommandExecError
 import urlparse
 
 
-def get_project_dir(project_name):
-    return '%s/webapps/%s' % (os.environ['HOME'], project_name)
+class Server():
+
+    def __init__(self):
+        self.base = os.environ['HOME']
+        self.known_hosts = '%s/.ssh/known_hosts' % self.base
 
 
-def get_project_git_domain(git):
+class Site(Server):
 
-    if git.find('@') != -1:
-        is_ssh_repo = True
-        return is_ssh_repo, git[(git.find('@')+1):git.find(':')]
-    else:
-        is_ssh_repo = False
-        url_splitted = urlparse.urlsplit(git)
-        return is_ssh_repo, url_splitted[1]
+    def _is_ssh_repo(self):
+        return True if self.git_address.find('@') != -1 else False
 
-def update_ssh_known_keys(raw_git_ssh_key):
-    known_hosts_file = '%s/.ssh/known_hosts' % os.environ['HOME']
+    def _update_server_ssh_key(self):
+        if self._is_ssh_repo():
+            p = Popen(['ssh-keyscan', '-H', self.git_domain], stdout=PIPE, stderr=PIPE)
+            ssh_key_fetch_from_domain = p.stdout.read()
 
-    file_handler = open(known_hosts_file, 'r') if os.path.isfile(known_hosts_file) else None
-    data_check = file_handler.read() if file_handler else ''
+            file_handler = open(self.known_hosts, 'r') if os.path.isfile(self.known_hosts) else None
+            data_check = file_handler.read() if file_handler else ''
 
-    if data_check.find(raw_git_ssh_key.strip()) == -1:
-        if file_handler:
+            if data_check.find(ssh_key_fetch_from_domain.strip()) == -1:
+                if file_handler:
+                    file_handler.close()
+
+                file_handler = open(self.known_hosts, 'w')
+                file_handler.write(ssh_key_fetch_from_domain)
+
             file_handler.close()
 
-        file_handler = open(known_hosts_file, 'w')
-        file_handler.write(raw_git_ssh_key)
+    def _git_clone(self):
 
-    file_handler.close()
+        self._update_server_ssh_key()
 
+        call(['mkdir', '-p', self.base_dir])
+        error_code = call(['git', 'clone', self.git_address, self.base_dir])
 
-def register_ssh_git_domain(git):
-    is_ssh_repo, repository_domain = get_project_git_domain(git)
+        if error_code == 128:
+            raise CommandExecError('It Seems You dont Have a valid git repo. May Be wrong keys or repo may exists on destiny path.')
 
-    if is_ssh_repo:
-        p = Popen(['ssh-keyscan', '-H', repository_domain], stdout=PIPE, stderr=PIPE)
-        ssh_key_fetch_from_domain = p.stdout.read()
+        return True
 
-        update_ssh_known_keys(ssh_key_fetch_from_domain)
+    def _create_virtualenv(self):
+        return call(['virtualenv', self.virtual_env])
 
+    def _pip_install_requirements(self):
+        return call([self.pip, 'install', '-r', self.requirements_pip])
 
-def git_clone(project_name, git):
+    def _django_db_setup(self):
+        call([self.python, self.manage_py, 'syncdb', '--noinput'])
+        call([self.python, self.manage_py, 'migrate'])
 
-    project_dir = get_project_dir(project_name=project_name)
-    call(['mkdir', '-p', project_dir])
+    def __init__(self, project_name, git_address):
 
-    register_ssh_git_domain(git)
+        Server.__init__(self)
 
-    error_code = call(['git', 'clone', git, project_dir])
+        self.project_name = project_name
+        self.git_address = git_address
 
-    if error_code == 128:
-        raise CommandExecError('It Seems You dont Have a valid git repo. May Be wrong keys or repo may exists on destiny path.')
+        self.base_dir = '%s/webapps/%s' % (os.environ['HOME'], self.project_name)
+        self.virtual_env = '%s/env' % (self.base_dir)
 
-    return True
+        self.python = '%s/bin/python' % (self.virtual_env)
+        self.pip = '%s/bin/pip' % (self.virtual_env)
 
-def create_virtualenv(project_name):
-    project_virtualenv = '%s/env' % get_project_dir(project_name=project_name)
-    return call(['virtualenv', project_virtualenv])
+        self.manage_py = '%s/manage.py' % (self.base_dir)
 
+        self.requirements_pip = '%s/requirements.pip' % self.base_dir
 
-def get_virtualenv_bin(project_name, command):
-    project_virtualenv = '%s/env' % get_project_dir(project_name=project_name)
-    return '%s/bin/%s' % (project_virtualenv, command)
+        if self._is_ssh_repo():
+            self.git_domain = self.git_address[(self.git_address.find('@')+1):self.git_address.find(':')]
+        else:
+            self.git_domain = urlparse.urlsplit(self.git_address)[1]
 
+    def install(self):
+        self._git_clone()
+        self._create_virtualenv()
+        self._pip_install_requirements()
 
-def install_pip_dependencies(project_name):
-    virtualenv_file = '%s/requirements.pip' % get_project_dir(project_name)
-    return call([get_virtualenv_bin(project_name, 'pip'), 'install', '-r', virtualenv_file])
+        self._django_db_setup()
 
-def django_database_prepare(project_name):
-
-    manage_py = '%s/manage.py' % get_project_dir(project_name)
-
-    call([get_virtualenv_bin(project_name, 'python'), manage_py, 'syncdb', '--noinput'])
-    call([get_virtualenv_bin(project_name, 'python'), manage_py, 'migrate'])
-
-
-# API Actions itself
-def install(project_name, git):
-    git_clone(project_name, git)
-    create_virtualenv(project_name)
-    install_pip_dependencies(project_name)
-    # Before ajdngo_database_prepare, run database creation in mysql
-    django_database_prepare(project_name)
-
+        return True

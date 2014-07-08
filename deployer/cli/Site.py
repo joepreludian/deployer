@@ -60,6 +60,7 @@ class SiteAction(argparse.Action):
     def install(self, namespace):
         print 'Trying to install %s...' % namespace.name
 
+        '''
         try:
             Site.install(
                 project_name=namespace.name,
@@ -67,7 +68,12 @@ class SiteAction(argparse.Action):
         except CommandExecError as e:
             print e.value
             sys.exit(1)
+        '''
 
+        site = Site.Site(project_name=namespace.name,
+                             git_address=namespace.git)
+
+        site.install()
         print 'Done!'
 
 
