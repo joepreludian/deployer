@@ -2,6 +2,7 @@
 import argparse, sys, os
 from deployer.controller import Site
 from deployer.Utils import CommandExecError
+from colorama import Fore
 
 
 def make_options(subparsers):
@@ -49,6 +50,7 @@ def make_options(subparsers):
 
     site_parser.add_argument('--name', '-n', help='Project name', required=True)
     site_parser.add_argument('--git', '-g', help='Git Repository')
+    site_parser.add_argument('--site-addr', '-s', help='Site Address(es)')
     site_parser.add_argument('--install-to', '-d',
                              metavar='DIR',
                              help='Override install path: default ~/webapps',
@@ -58,22 +60,17 @@ def make_options(subparsers):
 class SiteAction(argparse.Action):
 
     def install(self, namespace):
-        print 'Trying to install %s...' % namespace.name
 
-        '''
-        try:
-            Site.install(
-                project_name=namespace.name,
-                git=namespace.git)
-        except CommandExecError as e:
-            print e.value
-            sys.exit(1)
-        '''
-
-        site = Site.Site(project_name=namespace.name,
+        new_site = Site.Site(project_name=namespace.name,
                              git_address=namespace.git)
 
-        site.install()
+        try:
+            new_site.install()
+        except CommandExecError as error:
+            print error
+            print "\n%sAppLog%s\n\n%s" % (Fore.RED, Fore.RESET, new_site.output_log())
+            sys.exit(1)
+
         print 'Done!'
 
 
@@ -98,7 +95,7 @@ class SiteAction(argparse.Action):
         except AttributeError:
             print 'Action not found'
             print action
-            sys.exit(1)
+            sys.exit(2)
 
         method(namespace)
 
