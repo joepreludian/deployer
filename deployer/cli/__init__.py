@@ -1,8 +1,8 @@
 # -*- encoding: utf8 -*-
-import argparse
-import colorama
+import argparse, colorama, sys
+from deployer.cli import Site, Server, Setup
+from deployer.Utils import CommandExecError
 
-from deployer.cli import Site, Server
 
 
 def print_app_header():
@@ -18,15 +18,20 @@ def print_app_header():
 
 def main():
 
-    colorama.init()
-    print_app_header()
+    try:
+        colorama.init()
+        print_app_header()
 
-    # create the top-level parser
-    parser = argparse.ArgumentParser(description='Useful tool to manage webapps projects on VPS')
-    subparsers = parser.add_subparsers(help='sub-commands help')
+        parser = argparse.ArgumentParser(description='Useful tool to manage webapps projects on VPS')
+        subparsers = parser.add_subparsers(help='sub-commands help')
 
-    Server.make_options(subparsers)
-    Site.make_options(subparsers)
+        Setup.make_options(subparsers)
+        Server.make_options(subparsers)
+        Site.make_options(subparsers)
 
-    print_app_header()
-    parser.parse_args()
+        parser.parse_args()
+    except KeyboardInterrupt:
+        print 'Application finished by User.'
+        sys.exit(1)
+    except OSError, e:
+        print "Deployer found an error: %s" % e

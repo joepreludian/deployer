@@ -73,7 +73,6 @@ class SiteAction(argparse.Action):
 
         print 'Done!'
 
-
     def uninstall(self, namespace):
         print 'Doing uninstall Stuff'
         print namespace

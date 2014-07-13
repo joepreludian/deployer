@@ -50,10 +50,10 @@ class SshAction(argparse.Action):
 
 class InfoAction(argparse.Action):
 
-    def do_checking(self, apps_list):
+    def do_checking(self):
 
         response_text = ''
-        has_success_all, return_data = check_if_present(apps_list)
+        has_success_all, return_data = check_if_present()
 
         for item in return_data:
 
@@ -66,17 +66,9 @@ class InfoAction(argparse.Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
 
-        # Testar se o Development Tools está instalado (groupinstall)
-
         print "Checking services\n"
 
-        has_succeed_all, services_print = self.do_checking(['node',
-                                                            'git',
-                                                            'npm',
-                                                            'bower',
-                                                            'gunicorn',
-                                                            'fab',
-                                                            'supervisord'])
+        has_succeed_all, services_print = self.do_checking()
 
         print services_print
 

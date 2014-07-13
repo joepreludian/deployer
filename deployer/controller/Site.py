@@ -1,16 +1,8 @@
 from subprocess import Popen, call, PIPE
 import os
 from deployer.Utils import CommandExecError, ExecManager, ConfigTemplate
+from deployer.controller.Server import Server
 import urlparse
-
-
-class Server(ExecManager):
-
-    def __init__(self):
-        ExecManager.__init__(self)
-
-        self.base = os.environ['HOME']
-        self.known_hosts = '%s/.ssh/known_hosts' % self.base
 
 
 class Site(Server):
@@ -46,7 +38,6 @@ class Site(Server):
         self._exec(['mkdir', '-p', self.base_dir])
         self._exec(['git', 'clone', self.git_address, self.base_dir])
 
-
     def _create_virtualenv(self):
         self.append_log('Creating Virtualenv...', stdout=True)
 
@@ -73,7 +64,6 @@ class Site(Server):
 
     def _nginx_install_domain(self):
         config_file = ConfigTemplate('nginx.conf')
-
         config_file.render(self)
 
         print config_file
@@ -85,13 +75,23 @@ class Site(Server):
         self.project_name = project_name
         self.git_address = git_address
 
-        self.base_dir = '%s/webapps/%s' % (os.environ['HOME'], self.project_name)
-        self.virtual_env = '%s/env' % (self.base_dir)
+        self.site_dir = '%s/webapps' % self.home
+        self.supervisor_dir = '%s/supervisor' % self.home
+        self.nginx_dir = '%s/nginx' % self.home
 
-        self.python = '%s/bin/python' % (self.virtual_env)
-        self.pip = '%s/bin/pip' % (self.virtual_env)
+        self.base_dir = '%s/%s' % (self.site_dir, self.project_name)
+        self.supervisor_file = '%s/%s.supervisor.conf' % (self.supervisor_dir, self.project_name)
+        self.supervisor_file = '%s/%s.nginx.conf' % (self.nginx_dir, self.project_name)
 
-        self.manage_py = '%s/manage.py' % (self.base_dir)
+        self.virtual_env = '%s/env' % self.base_dir
+
+        self.site_port = 80
+        self.site_url = 'http://teste.com.br'
+
+        self.python = '%s/bin/python' % self.virtual_env
+        self.pip = '%s/bin/pip' % self.virtual_env
+
+        self.manage_py = '%s/manage.py' % self.base_dir
 
         self.requirements_pip = '%s/requirements.pip' % self.base_dir
 
@@ -103,9 +103,6 @@ class Site(Server):
         self.log_access_file = "%s/env/logs/nginx-access.log" % self.base_dir
 
 
-        self.site_port = 80
-        self.site_url = 'http://teste.com.br'
-
         self.static_dir = "%s/static/" % self.base_dir  # MUST have ending slash
         self.media_dir = "%s/media/" % self.base_dir
 
@@ -115,6 +112,8 @@ class Site(Server):
         else:
             self.git_domain = urlparse.urlsplit(self.git_address)[1]
 
+    def _supervisor_install(self):
+        supervisor_data = ConfigTemplate('supervisor_site.conf')
 
     def install(self):
 

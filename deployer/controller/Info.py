@@ -1,8 +1,14 @@
 from deployer.Utils import run_silent
 
-def check_if_present(app_list):
+def check_if_present():
 
     app_list_result = []
+    app_list = ['node',
+                'git',
+                'npm',
+                'bower',
+                'gunicorn',
+                'supervisord']
 
     validated = True
 

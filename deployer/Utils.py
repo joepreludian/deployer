@@ -23,6 +23,8 @@ class CommandExecError(Exception):
                                         self.return_code,
                                         self.stderr))
 
+class NotConfiguredException(Exception):
+    pass
 
 class ExecManager():
 
@@ -42,9 +44,11 @@ class ExecManager():
     def output_log(self):
         return self.log
 
+    def is_root(self):
+        return True if os.environ['USER'] == 'root' else False
+
     def _exec(self, command, echo_stdout=False):
         proc = Popen(args=command,
-                     bufsize=-1,
                      stdout=PIPE,
                      stderr=PIPE)
 
@@ -63,6 +67,7 @@ class ExecManager():
                                    return_code=proc.returncode,
                                    stderr=proc_return[1])
 
+
 class ConfigTemplate():
 
     def _parse(self, config_data):
@@ -77,6 +82,10 @@ class ConfigTemplate():
 
     def render(self, site_object):
         self.content = self.content % site_object
+
+    def save(self, filename):
+        with open(filename, 'w') as handler:
+            handler.write(self.content)
 
     def __str__(self):
         return self.content
