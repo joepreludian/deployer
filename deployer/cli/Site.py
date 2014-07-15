@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 import argparse, sys, os
 from deployer.controller import Site
-from deployer.Utils import CommandExecError
+from deployer.Utils import CommandExecError, NotConfiguredException
 from colorama import Fore
 
 
@@ -51,18 +51,20 @@ def make_options(subparsers):
     site_parser.add_argument('--name', '-n', help='Project name', required=True)
     site_parser.add_argument('--git', '-g', help='Git Repository')
     site_parser.add_argument('--site-addr', '-s', help='Site Address(es)')
-    site_parser.add_argument('--install-to', '-d',
-                             metavar='DIR',
-                             help='Override install path: default ~/webapps',
-                             default='~/webapps')
 
 
 class SiteAction(argparse.Action):
 
     def install(self, namespace):
 
-        new_site = Site.Site(project_name=namespace.name,
-                             git_address=namespace.git)
+        try:
+            new_site = Site.Site(project_name=namespace.name,
+                                 git_address=namespace.git,
+                                 site_addr=namespace.site_addr)
+        except NotConfiguredException, e:
+            print 'This tool ins\'t configured. Configure using setup --install'
+            print e
+            sys.exit(1)
 
         try:
             new_site.install()

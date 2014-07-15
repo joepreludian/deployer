@@ -21,7 +21,7 @@ def make_options(subparsers):
                                help='User used by supervisor to manage their sites')
     server_parser.add_argument('--deployer-home', '-c',
                                type=str,
-                               help='Folder used by Deployer to manage per site config. ~/webapps/ would be nice.')
+                               help='Folder used by Deployer to manage per site config. ~/ would be nice.')
 
 class SetupAction(argparse.Action):
 
@@ -49,13 +49,13 @@ class SetupAction(argparse.Action):
 
     def config(self, namespace):
         try:
-            config = Setup.Configurator(username=namespace.supervisor_user,
-                                        user_home=namespace.deployer_home)
+            configurator = Setup.Configurator(supervisor_user=namespace.supervisor_user,
+                                              user_home=namespace.deployer_home)
         except BaseException:
-            print 'You must set --supervisor-name, --deployer-home and --supervisor-dir before --install'
+            print 'You must set --supervisor-name, --deployer-home before --install'
             sys.exit(1)
 
-        config.config()
+        configurator.configure()
 
     def all(self, namespace):
         self.requirements()

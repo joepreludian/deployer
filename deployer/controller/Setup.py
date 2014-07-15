@@ -1,5 +1,5 @@
 # -*- encoding: utf8 -*-
-import sys, os
+import sys, os, json
 from colorama import Fore
 from deployer.Utils import CommandExecError, ExecManager, ConfigTemplate, NotConfiguredException, BASE_DIR
 
@@ -14,7 +14,8 @@ class Installer(ExecManager):
 
     def _install_pip(self):
         self.append_log('Installing Python packages throught PIP...', stdout=True)
-        self._exec(['pip', 'install','gunicorn', 'supervisor'])
+        self._exec(['pip', 'install', 'supervisor', 'virtualenv'])
+        self._exec(['yum', 'install', 'python-gunicorn', '-y'])
 
     def _install_bower(self):
         self.append_log('Installing bower dependencies...', stdout=True)
@@ -27,6 +28,10 @@ class Installer(ExecManager):
     def _install_environment_tools(self):
         self.append_log('Installing development tools...', stdout=True)
         self._exec(['yum', 'groupinstall', 'Development Tools', '-y'])
+        self._exec(['yum', 'install', 'python-devel', '-y'])
+
+        self.append_log('Installing Nginx...', stdout=True)
+        self._exec(['yum', 'install', 'nginx', '-y'])
 
     def _setup_epel(self):
         self.append_log('Installing repository and Yum stuff...', stdout=True)
@@ -64,30 +69,39 @@ class Configurator(ExecManager):
                        'home': user_home}
 
     def _config_supervisor(self):
-        self.append_log('Configuring supervisor', stdout=True)
+        self.append_log('Configuring Supervisor', stdout=True)
         supervisord = ConfigTemplate('supervisord.conf')
         supervisord.render(self.config)
         supervisord.save('/etc/supervisord.conf')
+
+    def _config_nginx(self):
+        self.append_log('Configuring Nginx', stdout=True)
+        nginx = ConfigTemplate('nginx.conf')
+        nginx.render(self.config)
+        nginx.save('/etc/nginx/nginx.conf')
 
     def _save_config(self):
         deployer = DeployerSettings()
         deployer.data = self.config
         deployer.save()
 
-    def config(self):
+    def configure(self):
         self.append_log('Configure', stdout=True)
         self._config_supervisor()
+        self._config_nginx()
         self._save_config()
 
 
 class DeployerSettings():
 
     def __init__(self):
-        try:
-            with open(os.path.join(BASE_DIR, 'deployer.conf'), 'r') as file_handler:
-                self.data = file_handler.read()
-        except OSError:
+        deployer_config_file = os.path.join(BASE_DIR, 'deployer.conf')
+
+        if not os.path.isfile(deployer_config_file):
             self.data = None
+        else:
+            with open(deployer_config_file, 'r') as file_handler:
+                self.data = json.loads(file_handler.read())
 
     def get(self):
         if not self.data:
@@ -97,4 +111,4 @@ class DeployerSettings():
 
     def save(self):
         with open(os.path.join(BASE_DIR, 'deployer.conf'), 'w') as file_handler:
-            file_handler.write(self.data)
+            file_handler.write(json.dumps(self.data))

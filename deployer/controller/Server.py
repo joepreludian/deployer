@@ -18,8 +18,13 @@ class Server(ExecManager):
         ExecManager.__init__(self)
 
         deployer_settings = DeployerSettings()
-        self.config = deployer_settings.get()
+
+        try:
+            self.config = deployer_settings.get()
+        except OSError:
+            raise NotConfiguredException()
 
         self.home = self.config['home']
+        self.user = self.config['supervisor_user']
 
-        self.known_hosts = '%s/.ssh/known_hosts' % self.base
+        self.known_hosts = '%s/.ssh/known_hosts' % self.home

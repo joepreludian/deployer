@@ -7,8 +7,8 @@ def check_if_present():
                 'git',
                 'npm',
                 'bower',
-                'gunicorn',
-                'supervisord']
+                'supervisord',
+                'virtualenv']
 
     validated = True
 

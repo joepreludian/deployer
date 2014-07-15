@@ -1,6 +1,6 @@
 from subprocess import Popen, call, PIPE
 import os
-from deployer.Utils import CommandExecError, ExecManager, ConfigTemplate
+from deployer.Utils import CommandExecError, NotConfiguredException, ExecManager, ConfigTemplate
 from deployer.controller.Server import Server
 import urlparse
 
@@ -43,6 +43,10 @@ class Site(Server):
 
         self._exec(['virtualenv', self.virtual_env])
 
+        logs_folder = '%s/logs' % self.virtual_env
+        self._exec(['mkdir', '-p', logs_folder])
+
+
     def _pip_install_requirements(self):
         self.append_log('Installing Requirements file...', stdout=True)
 
@@ -54,6 +58,10 @@ class Site(Server):
         self._exec([self.python, self.manage_py, 'syncdb', '--noinput'])
         self._exec([self.python, self.manage_py, 'migrate'])
 
+    def _django_collectstatic(self):
+        self.append_log('Collecting Django static files...')
+        self._exec([self.python, self.manage_py, 'collectstatic', '--noinput'])
+
     def _create_django_superuser(self):
         self.append_log('Adding superuser to rapid login on Django Project...', stdout=True)
 
@@ -62,13 +70,17 @@ class Site(Server):
                      ' | %s %s shell' % (self.python, self.manage_py)
         call(insert_cmd, stdout=PIPE, stderr=PIPE, shell=True)
 
-    def _nginx_install_domain(self):
-        config_file = ConfigTemplate('nginx.conf')
-        config_file.render(self)
+    def _get_virtualenv_site_package_dir(self):
+        handler = Popen([self.python, '-c',
+                         'from distutils.sysconfig import get_python_lib; print get_python_lib()'],
+                        stdout=PIPE)
+        self.virtualenv_site_packages_dir = handler.communicate()[0]
 
-        print config_file
 
-    def __init__(self, project_name, git_address):
+    def __init__(self, project_name, git_address, site_addr):
+
+        if not project_name or not git_address or not site_addr:
+            raise NotConfiguredException('All fields required: Project\'s name, git link and site address')
 
         Server.__init__(self)
 
@@ -81,12 +93,12 @@ class Site(Server):
 
         self.base_dir = '%s/%s' % (self.site_dir, self.project_name)
         self.supervisor_file = '%s/%s.supervisor.conf' % (self.supervisor_dir, self.project_name)
-        self.supervisor_file = '%s/%s.nginx.conf' % (self.nginx_dir, self.project_name)
+        self.nginx_file = '%s/%s.nginx.conf' % (self.nginx_dir, self.project_name)
 
         self.virtual_env = '%s/env' % self.base_dir
 
         self.site_port = 80
-        self.site_url = 'http://teste.com.br'
+        self.site_url = site_addr
 
         self.python = '%s/bin/python' % self.virtual_env
         self.pip = '%s/bin/pip' % self.virtual_env
@@ -94,6 +106,7 @@ class Site(Server):
         self.manage_py = '%s/manage.py' % self.base_dir
 
         self.requirements_pip = '%s/requirements.pip' % self.base_dir
+        self.virtualenv_site_packages_dir = '' #will be setted on _get_virtualenv_site_package_dir
 
         # Nginx Specific stuff
         self.nginx_upstream_resource = "%s_upstream" % self.project_name
@@ -113,21 +126,38 @@ class Site(Server):
             self.git_domain = urlparse.urlsplit(self.git_address)[1]
 
     def _supervisor_install(self):
-        supervisor_data = ConfigTemplate('supervisor_site.conf')
+        self._get_virtualenv_site_package_dir()
+
+        self._exec(['mkdir', '-p', self.supervisor_dir])
+
+        supervisor_file = ConfigTemplate('supervisor_site.conf')
+        supervisor_file.render(self)
+
+        supervisor_file.save(self.supervisor_file)
+
+    def _nginx_install_domain(self):
+
+        self._exec(['mkdir', '-p', self.nginx_dir])
+
+        nginx_file = ConfigTemplate('nginx_site.conf')
+        nginx_file.render(self)
+
+        nginx_file.save(self.nginx_file)
 
     def install(self):
 
         self.append_log('Installing project...', stdout=True)
 
-        '''
         self._git_clone()
         self._create_virtualenv()
         self._pip_install_requirements()
 
         self._django_db_setup()
+        self._django_collectstatic()
         self._create_django_superuser()
-        '''
+
         self._nginx_install_domain()
+        self._supervisor_install()
 
         return True
 
