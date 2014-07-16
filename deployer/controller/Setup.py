@@ -14,8 +14,9 @@ class Installer(ExecManager):
 
     def _install_pip(self):
         self.append_log('Installing Python packages throught PIP...', stdout=True)
-        self._exec(['pip', 'install', 'supervisor', 'virtualenv'])
-        self._exec(['yum', 'install', 'python-gunicorn', '-y'])
+        self._exec(['pip', 'install', 'virtualenv'])
+        self._exec(['yum', 'install', 'python-gunicorn', 'supervisor', '-y'])
+        self._exec(['yum', 'install', 'supervisor', '-y'])
 
     def _install_bower(self):
         self.append_log('Installing bower dependencies...', stdout=True)
@@ -73,12 +74,14 @@ class Configurator(ExecManager):
         supervisord = ConfigTemplate('supervisord.conf')
         supervisord.render(self.config)
         supervisord.save('/etc/supervisord.conf')
+        self._exec(['chkconfig', 'supervisord', 'on'])
 
     def _config_nginx(self):
         self.append_log('Configuring Nginx', stdout=True)
         nginx = ConfigTemplate('nginx.conf')
         nginx.render(self.config)
         nginx.save('/etc/nginx/nginx.conf')
+        self._exec(['chkconfig', 'nginx', 'on'])
 
     def _save_config(self):
         deployer = DeployerSettings()

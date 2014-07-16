@@ -38,6 +38,10 @@ class Site(Server):
         self._exec(['mkdir', '-p', self.base_dir])
         self._exec(['git', 'clone', self.git_address, self.base_dir])
 
+    def _git_pull(self):
+        self.append_log('Pulling git repo for news...', stdout=True)
+        self._exec(['git', 'clone'], in_folder=self.base_dir)
+
     def _create_virtualenv(self):
         self.append_log('Creating Virtualenv...', stdout=True)
 
@@ -56,11 +60,17 @@ class Site(Server):
         self.append_log('Setting up django database environment...', stdout=True)
 
         self._exec([self.python, self.manage_py, 'syncdb', '--noinput'])
+
+    def _django_db_migrate(self):
+        self.append_log('Applying south/django migrations...', stdout=True)
         self._exec([self.python, self.manage_py, 'migrate'])
 
     def _django_collectstatic(self):
         self.append_log('Collecting Django static files...')
-        self._exec([self.python, self.manage_py, 'collectstatic', '--noinput'])
+        try:
+            self._exec([self.python, self.manage_py, 'collectstatic', '--noinput'])
+        except CommandExecError:
+            self.append_log('Django Static files not collected. Maybe not configured as well')
 
     def _create_django_superuser(self):
         self.append_log('Adding superuser to rapid login on Django Project...', stdout=True)
@@ -153,13 +163,27 @@ class Site(Server):
         self._pip_install_requirements()
 
         self._django_db_setup()
+        self._django_db_migrate()
+
         self._django_collectstatic()
+
         self._create_django_superuser()
 
         self._nginx_install_domain()
         self._supervisor_install()
 
+        self.services_reload()
+
         return True
+
+    def update(self):
+
+        self.append_log('Updating current project...')
+        self._git_pull()
+        self._django_db_migrate()
+        self._django_collectstatic()
+
+        self.services_reload()
 
     def __getitem__(self, item):
         return getattr(self, item)

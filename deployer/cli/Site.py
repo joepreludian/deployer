@@ -79,6 +79,7 @@ class SiteAction(argparse.Action):
         print 'Doing uninstall Stuff'
         print namespace
 
+    '''
     def maintenance(self, namespace):
         print 'maintenance'
         print namespace
@@ -88,6 +89,7 @@ class SiteAction(argparse.Action):
 
     def block(self, name):
         print 'Block page'
+    '''
 
     def __call__(self, parser, namespace, action, option_string=None):
 

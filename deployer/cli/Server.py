@@ -23,6 +23,11 @@ def make_options(subparsers):
                                         'set'],
                                action=SshAction)
 
+    server_parser.add_argument('--service',
+                               help='Reload system services. Reload services over sudo command',
+                               action=ServicesAction,
+                               choices=['reload_all'])
+
 
 class SshAction(argparse.Action):
 
@@ -77,3 +82,23 @@ class InfoAction(argparse.Action):
                   (Fore.RED, Fore.RESET)
 
         sys.exit(0 if has_succeed_all else 1)
+
+class ServicesAction(argparse.Action):
+
+    def __call__(self, parser, namespace, action, option_string=None):
+
+        try:
+            action = getattr(self, action)
+        except AttributeError:
+            print 'Action not found'
+
+        action()
+
+        sys.exit(0)
+
+    def reload_all(self):
+
+        print 'Reloading services...'
+
+        server = Server.Server()
+        server.services_reload()

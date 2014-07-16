@@ -28,3 +28,17 @@ class Server(ExecManager):
         self.user = self.config['supervisor_user']
 
         self.known_hosts = '%s/.ssh/known_hosts' % self.home
+
+    def _nginx_reload(self):
+        self._exec(['sudo', 'service', 'nginx', 'reload'])
+        self.append_log('Reloaded Nginx over sudo.', stdout=True)
+
+    def _supervisord_reload(self):
+        self._exec(['sudo', 'service', 'supervisord', 'reload'])
+        self.append_log('Reloaded Supervisord over sudo.', stdout=True)
+
+    def services_reload(self):
+
+        self._supervisord_reload()
+        self._nginx_reload()
+

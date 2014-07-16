@@ -47,10 +47,11 @@ class ExecManager():
     def is_root(self):
         return True if os.environ['USER'] == 'root' else False
 
-    def _exec(self, command, echo_stdout=False):
+    def _exec(self, command, echo_stdout=False, in_folder=None):
         proc = Popen(args=command,
                      stdout=PIPE,
-                     stderr=PIPE)
+                     stderr=PIPE,
+                     cwd=in_folder)
 
         proc_return = proc.communicate()
 
