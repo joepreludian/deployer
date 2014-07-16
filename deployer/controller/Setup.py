@@ -74,13 +74,18 @@ class Configurator(ExecManager):
         supervisord = ConfigTemplate('supervisord.conf')
         supervisord.render(self.config)
         supervisord.save('/etc/supervisord.conf')
+
+        self.append_log('Enabling supervisord service...')
         self._exec(['chkconfig', 'supervisord', 'on'])
+
 
     def _config_nginx(self):
         self.append_log('Configuring Nginx', stdout=True)
         nginx = ConfigTemplate('nginx.conf')
         nginx.render(self.config)
         nginx.save('/etc/nginx/nginx.conf')
+
+        self.append_log('Enabling Nginx service...')
         self._exec(['chkconfig', 'nginx', 'on'])
 
     def _save_config(self):
