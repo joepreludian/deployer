@@ -3,7 +3,6 @@ import sys, os, json
 from colorama import Fore
 from deployer.Utils import CommandExecError, ExecManager, ConfigTemplate, NotConfiguredException, BASE_DIR
 
-
 class Installer(ExecManager):
 
     def __init__(self):
@@ -63,6 +62,9 @@ class Installer(ExecManager):
 class Configurator(ExecManager):
 
     def __init__(self, supervisor_user, user_home):
+
+        self.verbose = False
+
         if not supervisor_user or not user_home:
             raise BaseException('username, home folder and/or supervisor supervisor home folder not specified')
 
@@ -92,6 +94,9 @@ class Configurator(ExecManager):
         deployer = DeployerSettings()
         deployer.data = self.config
         deployer.save()
+
+    def _setup_ssh_keys(self):
+        set_ssh_pub_key()
 
     def configure(self):
         self.append_log('Configure', stdout=True)

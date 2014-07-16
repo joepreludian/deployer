@@ -43,7 +43,7 @@ class SshAction(argparse.Action):
         sys.exit(0)
 
     def set(self):
-        call(['ssh-keygen', '-t', 'rsa'])
+        Server.set_ssh_pub_key()
 
     def get(self):
         ssh_pubkey = Server.get_ssh_pub_key()

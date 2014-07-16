@@ -1,4 +1,5 @@
 import os, sys
+from subprocess import call
 from deployer.Utils import ExecManager, NotConfiguredException
 from deployer.controller.Setup import DeployerSettings
 
@@ -10,6 +11,9 @@ def get_ssh_pub_key():
         return False
 
     return file.read()
+
+def set_ssh_pub_key():
+    call(['ssh-keygen', '-t', 'rsa'])
 
 
 class Server(ExecManager):
