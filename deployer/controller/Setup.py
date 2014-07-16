@@ -95,15 +95,11 @@ class Configurator(ExecManager):
         deployer.data = self.config
         deployer.save()
 
-    def _setup_ssh_keys(self):
-        set_ssh_pub_key()
-
     def configure(self):
         self.append_log('Configure', stdout=True)
         self._config_supervisor()
         self._config_nginx()
         self._save_config()
-
 
 class DeployerSettings():
 
