@@ -89,8 +89,8 @@ class Site(Server):
 
     def __init__(self, project_name, git_address, site_addr):
 
-        if not project_name or not git_address or not site_addr:
-            raise NotConfiguredException('All fields required: Project\'s name, git link and site address')
+        if not project_name:
+            raise NotConfiguredException('At least project_name must be supplied.')
 
         Server.__init__(self)
 
@@ -129,7 +129,6 @@ class Site(Server):
         self.static_dir = "%s/static/" % self.base_dir  # MUST have ending slash
         self.media_dir = "%s/media/" % self.base_dir
 
-
         if self._is_ssh_repo():
             self.git_domain = self.git_address[(self.git_address.find('@')+1):self.git_address.find(':')]
         else:
@@ -155,6 +154,9 @@ class Site(Server):
         nginx_file.save(self.nginx_file)
 
     def install(self):
+
+        if not self.git_address or not self.site_url:
+            raise NotConfiguredException('All fields required: Project\'s name, git link and site address')
 
         self.append_log('Installing project...', stdout=True)
 
@@ -184,6 +186,16 @@ class Site(Server):
         self._django_collectstatic()
 
         self.services_reload()
+
+    def uninstall(self):
+        os.remove(self.nginx_file)
+        os.remove(self.supervisor_file)
+        self._exec(['rm', '-Rfv', self.base_dir])
+
+        self.services_reload()
+
+        self.append_log('Removed project files.')
+
 
     def __getitem__(self, item):
         return getattr(self, item)

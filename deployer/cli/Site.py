@@ -19,7 +19,7 @@ def make_options(subparsers):
                           const='install',
                           action=SiteAction)
 
-
+    '''
     site_parser.add_argument('--service',
                           required=False,
                           help='Maintenance help',
@@ -30,13 +30,14 @@ def make_options(subparsers):
                                    'landing',
                                    'block'],
                           action=SiteAction)
+    '''
 
     site_parser.add_argument('--update',
                           required=False,
                           help='Update project',
                           metavar='',
                           nargs='?',
-                          const='maintenance',
+                          const='update',
                           action=SiteAction)
 
     site_parser.add_argument('--uninstall',
@@ -76,8 +77,12 @@ class SiteAction(argparse.Action):
         print 'Done!'
 
     def uninstall(self, namespace):
-        print 'Doing uninstall Stuff'
-        print namespace
+        existing_site = Site.Site(project_name=namespace.name)
+        existing_site.uninstall()
+
+    def update(self, namespace):
+        existing_site = Site.Site(project_name=namespace.name)
+        existing_site.update()
 
     '''
     def maintenance(self, namespace):

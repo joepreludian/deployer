@@ -7,6 +7,7 @@ def check_if_present():
                 'git',
                 'npm',
                 'bower',
+                'gunicorn',
                 'supervisord',
                 'virtualenv']
 
