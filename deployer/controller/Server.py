@@ -1,6 +1,6 @@
 import os, sys
 from subprocess import call
-from deployer.Utils import ExecManager, NotConfiguredException
+from deployer.Utils import ExecManager, NotConfiguredException, CommandExecError
 from deployer.controller.Setup import DeployerSettings
 
 def get_ssh_pub_key():
@@ -33,16 +33,17 @@ class Server(ExecManager):
 
         self.known_hosts = '%s/.ssh/known_hosts' % self.home
 
-    def _nginx_reload(self):
-        self._exec(['sudo', 'service', 'nginx', 'reload'])
+    def services_reload(self):
+        try:
+            self._exec(['sudo', 'service', 'nginx', 'reload'])
+        except CommandExecError:
+            self._exec(['sudo', 'service', 'nginx', 'start'])
+
         self.append_log('Reloaded Nginx over sudo.', stdout=True)
 
-    def _supervisord_reload(self):
-        self._exec(['sudo', 'service', 'supervisord', 'reload'])
+        try:
+            self._exec(['sudo', 'service', 'supervisord', 'reload'])
+        except CommandExecError:
+            self._exec(['sudo', 'service', 'supervisord', 'start'])
+
         self.append_log('Reloaded Supervisord over sudo.', stdout=True)
-
-    def services_reload(self):
-
-        self._supervisord_reload()
-        self._nginx_reload()
-
