@@ -5,7 +5,7 @@ setup(
     name='deployer',
     version='0.0.4',
     packages=find_packages(),
-    package_data={'': ['deployer/template/*.conf']},
+    package_data={'deployer': ['template/*.conf']},
     url='http://joey.universo42.com.br',
     license='MIT',
     install_requires=['colorama', 'argparse', 'virtualenv'],
