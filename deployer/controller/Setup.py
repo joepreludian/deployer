@@ -80,7 +80,6 @@ class Configurator(ExecManager):
         self.append_log('Enabling supervisord service...')
         self._exec(['chkconfig', 'supervisord', 'on'])
 
-
     def _config_nginx(self):
         self.append_log('Configuring Nginx', stdout=True)
         nginx = ConfigTemplate('nginx.conf')
@@ -89,6 +88,12 @@ class Configurator(ExecManager):
 
         self.append_log('Enabling Nginx service...')
         self._exec(['chkconfig', 'nginx', 'on'])
+
+    def _config_sudoers(self):
+        self.append_log('Configuring Sudoers', stdout=True)
+        nginx = ConfigTemplate('sudoers_d_user.conf')
+        nginx.render(self.config)
+        nginx.save('/etc/sudoers.d/01%s' % self.config['supervisor_user'])
 
     def _save_config(self):
         deployer = DeployerSettings()
@@ -99,7 +104,9 @@ class Configurator(ExecManager):
         self.append_log('Configure', stdout=True)
         self._config_supervisor()
         self._config_nginx()
+        self._config_sudoers()
         self._save_config()
+
 
 class DeployerSettings():
 
