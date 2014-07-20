@@ -48,7 +48,7 @@ class Installer(ExecManager):
     def install_requirements(self):
         self.append_log('Installing required software to run deployer. Please Wait...')
 
-        self._setup_epel()
+        #self._setup_epel()
         self._install_environment_tools()
 
         self._install_pip()
@@ -76,6 +76,15 @@ class Configurator(ExecManager):
         supervisord = ConfigTemplate('supervisord.conf')
         supervisord.render(self.config)
         supervisord.save('/etc/supervisord.conf')
+
+        try:
+            self._exec(['mkdir', '%s/logs' % self.config['home']])
+        except CommandExecError:
+            pass
+
+        self._exec(['chown',
+                    '%s:%s' % (self.config['supervisor_user'], self.config['supervisor_user']),
+                    '%s/logs' % self.config['home']])
 
         self.append_log('Enabling supervisord service...')
         self._exec(['chkconfig', 'supervisord', 'on'])
