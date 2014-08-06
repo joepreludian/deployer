@@ -104,6 +104,10 @@ class Configurator(ExecManager):
         nginx.render(self.config)
         nginx.save('/etc/sudoers.d/01%s' % self.config['supervisor_user'])
 
+    def _config_disablefirewalld(self):
+        self.append_log('Disabling firewalld', stdout=True)
+        self._exec(['systemctl', 'disable', 'firewalld'])
+
     def _save_config(self):
         deployer = DeployerSettings()
         deployer.data = self.config
@@ -114,6 +118,7 @@ class Configurator(ExecManager):
         self._config_supervisor()
         self._config_nginx()
         self._config_sudoers()
+        self._config_disablefirewalld()
         self._save_config()
 
 
