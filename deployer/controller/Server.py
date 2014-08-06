@@ -47,3 +47,18 @@ class Server(ExecManager):
             self._exec(['sudo', 'service', 'supervisord', 'start'])
 
         self.append_log('Reloaded Supervisord over sudo.', stdout=True)
+
+    def services_restart(self):
+        try:
+            self._exec(['sudo', 'service', 'nginx', 'restart'])
+        except CommandExecError:
+            self._exec(['sudo', 'service', 'nginx', 'start'])
+
+        self.append_log('Restarted Nginx over sudo.', stdout=True)
+
+        try:
+            self._exec(['sudo', 'service', 'supervisord', 'restart'])
+        except CommandExecError:
+            self._exec(['sudo', 'service', 'supervisord', 'start'])
+
+        self.append_log('Restarted Supervisord over sudo.', stdout=True)

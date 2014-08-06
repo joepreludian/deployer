@@ -48,7 +48,7 @@ def make_options(subparsers):
                           metavar='',
                           action=SiteAction)
 
-    site_parser.add_argument('--main-module', '-m', help='Project Main Module', required=True)
+    site_parser.add_argument('--main-module', '-m', help='Project Main Module')
     site_parser.add_argument('--name', '-n', help='Project name', required=True)
     site_parser.add_argument('--git', '-g', help='Git Repository')
     site_parser.add_argument('--site-addr', '-s', help='Site Address(es)')

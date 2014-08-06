@@ -98,6 +98,12 @@ class Configurator(ExecManager):
         self.append_log('Enabling Nginx service...')
         self._exec(['chkconfig', 'nginx', 'on'])
 
+    def _config_selinux(self):
+        self.append_log('Disabling Selinux...', stdout=True)
+        selinux = ConfigTemplate('selinux_config.conf')
+        selinux.render(self.config)
+        selinux.save('/etc/selinux/config')
+
     def _config_sudoers(self):
         self.append_log('Configuring Sudoers', stdout=True)
         nginx = ConfigTemplate('sudoers_d_user.conf')
@@ -119,7 +125,10 @@ class Configurator(ExecManager):
         self._config_nginx()
         self._config_sudoers()
         self._config_disablefirewalld()
+        self._config_selinux()
         self._save_config()
+
+        self.append_log('Settings done. You MUST restart to changes take effect')
 
 
 class DeployerSettings():

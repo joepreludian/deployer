@@ -87,7 +87,7 @@ class Site(Server):
         self.virtualenv_site_packages_dir = handler.communicate()[0]
 
 
-    def __init__(self, project_name, git_address, site_addr, main_module):
+    def __init__(self, project_name, git_address = None, site_addr = None, main_module = None):
 
         if not project_name:
             raise NotConfiguredException('At least project_name must be supplied.')
@@ -130,10 +130,11 @@ class Site(Server):
         self.static_dir = "%s/static/" % self.base_dir  # MUST have ending slash
         self.media_dir = "%s/media/" % self.base_dir
 
-        if self._is_ssh_repo():
-            self.git_domain = self.git_address[(self.git_address.find('@')+1):self.git_address.find(':')]
-        else:
-            self.git_domain = urlparse.urlsplit(self.git_address)[1]
+        if self.git_address:
+            if self._is_ssh_repo():
+                self.git_domain = self.git_address[(self.git_address.find('@')+1):self.git_address.find(':')]
+            else:
+                self.git_domain = urlparse.urlsplit(self.git_address)[1]
 
     def _supervisor_install(self):
         self._get_virtualenv_site_package_dir()
@@ -193,7 +194,7 @@ class Site(Server):
         os.remove(self.supervisor_file)
         self._exec(['rm', '-Rfv', self.base_dir])
 
-        self.services_reload()
+        self.services_restart()
 
         self.append_log('Removed project files.')
 
