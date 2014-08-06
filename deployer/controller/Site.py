@@ -87,7 +87,7 @@ class Site(Server):
         self.virtualenv_site_packages_dir = handler.communicate()[0]
 
 
-    def __init__(self, project_name, git_address, site_addr):
+    def __init__(self, project_name, git_address, site_addr, main_module):
 
         if not project_name:
             raise NotConfiguredException('At least project_name must be supplied.')
@@ -96,6 +96,7 @@ class Site(Server):
 
         self.project_name = project_name
         self.git_address = git_address
+        self.project_mainmodule = main_module
 
         self.site_dir = '%s/webapps' % self.home
         self.supervisor_dir = '%s/supervisor' % self.home

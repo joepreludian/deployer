@@ -48,7 +48,7 @@ def make_options(subparsers):
                           metavar='',
                           action=SiteAction)
 
-
+    site_parser.add_argument('--main-module', '-m', help='Project Main Module', required=True)
     site_parser.add_argument('--name', '-n', help='Project name', required=True)
     site_parser.add_argument('--git', '-g', help='Git Repository')
     site_parser.add_argument('--site-addr', '-s', help='Site Address(es)')
@@ -61,7 +61,8 @@ class SiteAction(argparse.Action):
         try:
             new_site = Site.Site(project_name=namespace.name,
                                  git_address=namespace.git,
-                                 site_addr=namespace.site_addr)
+                                 site_addr=namespace.site_addr,
+                                 main_module=namespace.main_module)
         except NotConfiguredException, e:
             print 'This tool ins\'t configured. Configure using setup --install'
             print e
