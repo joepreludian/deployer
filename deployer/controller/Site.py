@@ -157,8 +157,8 @@ class Site(Server):
 
     def install(self):
 
-        if not self.git_address or not self.site_url:
-            raise NotConfiguredException('All fields required: Project\'s name, git link and site address')
+        if not self.git_address or not self.site_url or not self.project_mainmodule:
+            raise NotConfiguredException('All fields required: Project\'s name, git link, site address and main module')
 
         self.append_log('Installing project...', stdout=True)
 
